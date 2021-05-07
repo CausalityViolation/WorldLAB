@@ -13,12 +13,20 @@ public class Country {
     private String region;
     private int population;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "capital")
     private City capital;
 
-    @OneToMany(mappedBy = "country", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
     private Set<City> citySet;
+
+    public Country(String code, String name, String continent, String region, int population) {
+        this.code = code;
+        this.name = name;
+        this.continent = continent;
+        this.region = region;
+        this.population = population;
+    }
 
     public Country() {
 
@@ -78,6 +86,10 @@ public class Country {
 
     public void setPopulation(int population) {
         this.population = population;
+    }
+
+    public void removeCity(City city) {
+        citySet.remove(city);
     }
 
     @Override

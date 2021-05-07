@@ -3,10 +3,7 @@ package world;
 import world.domain.City;
 import world.domain.Country;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
@@ -87,10 +84,20 @@ public class DAO {
     public void createCountry() {
 
         EntityManager em = emf.createEntityManager();
-        Country newCountry = new Country();
 
         System.out.print("Enter Name Of New Country: ");
         String name = input.nextLine();
+
+        System.out.print("Enter Country Code: ");
+        String code = input.nextLine();
+
+        System.out.print("Enter Pop: ");
+        int pop = scanInt();
+
+        System.out.print("Enter Region: ");
+        String region = input.nextLine();
+
+        String continent = "null";
 
         boolean loop = true;
         while (loop) {
@@ -110,25 +117,25 @@ public class DAO {
             switch (choice) {
 
                 case 1:
-                    newCountry.setContinent("Europe");
+                    continent = ("Europe");
                     break;
                 case 2:
-                    newCountry.setContinent("Asia");
+                    continent = ("Asia");
                     break;
                 case 3:
-                    newCountry.setContinent("North America");
+                    continent = ("North America");
                     break;
                 case 4:
-                    newCountry.setContinent("Africa");
+                    continent = ("Africa");
                     break;
                 case 5:
-                    newCountry.setContinent("Antarctica");
+                    continent = ("Antarctica");
                     break;
                 case 6:
-                    newCountry.setContinent("Oceania");
+                    continent = ("Oceania");
                     break;
                 case 7:
-                    newCountry.setContinent("South America");
+                    continent = ("South America");
                     break;
                 default: {
                     System.out.println("<Invalid Input!>");
@@ -141,34 +148,9 @@ public class DAO {
 
         }
 
-        System.out.print("Enter Region: ");
-        String region = input.nextLine();
+        Country newCountry = new Country(code, name, continent, region, pop);
 
-        System.out.print("Enter Country Code: ");
-        String code = input.nextLine();
-
-
-        newCountry.setName(name);
-        newCountry.setRegion(region);
-        newCountry.setCode(code);
-
-        System.out.println("<Enter Information About The Capital City>");
-        System.out.print("Capital Name: ");
-        String capital = input.nextLine();
-
-        System.out.print("Enter District: ");
-        String district = input.nextLine();
-
-        System.out.print("Enter Population: ");
-        int pop = scanInt();
-
-        City newCity = new City();
-        newCity.setName(capital);
-        newCity.setDistrict(district);
-        newCity.setPopulation(pop);
-        newCountry.setCapital(newCity);
-
-        Country countryCheck = em.find(Country.class, code);
+        Country countryCheck = em.find(Country.class, name);
 
         if (countryCheck != null) {
 
@@ -184,8 +166,10 @@ public class DAO {
 
             } catch (Exception error) {
                 em.getTransaction().rollback();
+                System.out.println("Could not add Country to Database");
             }
         }
+
 
     }
 
@@ -204,6 +188,7 @@ public class DAO {
         System.out.println("2. Edit Continent");
         System.out.println("3. Edit Region");
         System.out.println("4. Edit Population");
+        System.out.println("5. Add Capital");
         System.out.println("0. Exit");
         System.out.println("=========================");
         System.out.print("Input: ");
@@ -285,6 +270,27 @@ public class DAO {
             }
             break;
 
+            case 5: {
+
+                System.out.println("Enter Name Of New Capital: ");
+                String name = input.nextLine();
+
+                System.out.println("Enter Population: ");
+                int pop = scanInt();
+
+                System.out.println("Enter District Name: ");
+                String district = input.nextLine();
+
+                City newCapital = new City();
+                newCapital.setDistrict(district);
+                newCapital.setPopulation(pop);
+                newCapital.setName(name);
+                newCapital.setCountry(updatedCountry);
+
+                updatedCountry.setCapital(newCapital);
+            }
+            break;
+
             case 0:
                 System.exit(0);
 
@@ -302,36 +308,16 @@ public class DAO {
 
     public void deleteCountry() {
 
-        EntityManager em = emf.createEntityManager();
+        System.out.println("<You may ONLY Delete CUSTOM Cities>");
+        System.out.print("Input CODE Of Country to NUKE: ");
+        System.out.println("<WARNING: THIS WILL NUKE ALL CITIES IN THIS COUNTRY>");
+        String code = input.nextLine();
 
-        System.out.print("Input NAME Of Country to NUKE: ");
-        String name = input.nextLine();
+        em.getTransaction().begin();
+        Country c = em.find(Country.class, code);
 
-        Query findCountry = em.createQuery("SELECT c FROM Country c WHERE c.name =:name");
-        findCountry.setParameter("name", name);
-
-        Object c = findCountry.getSingleResult();
-
-        System.out.println("=========================");
-        System.out.println("    <CONFIRM NUKE>");
-        System.out.println("     <YES / NO> ");
-        System.out.println("=========================");
-        System.out.print("Choice: ");
-
-        String choice = input.nextLine();
-
-        if (choice.equalsIgnoreCase("yes")) {
-
-            System.out.println("<NUCLEAR LAUNCH DETECTED>");
-
-            em.getTransaction().begin();
-            em.remove(c);
-            em.getTransaction().commit();
-            em.close();
-        } else {
-            System.out.println("<Returning To Main>");
-        }
-
+        em.remove(c);
+        em.getTransaction().commit();
 
     }
 

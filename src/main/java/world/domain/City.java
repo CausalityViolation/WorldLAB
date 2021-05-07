@@ -8,11 +8,12 @@ public class City {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String name;
     private String district;
     private int population;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "countrycode")
     private Country country;
 
@@ -52,6 +53,7 @@ public class City {
     public void setPopulation(int population) {
         this.population = population;
     }
+
 
     @Override
     public String toString() {
